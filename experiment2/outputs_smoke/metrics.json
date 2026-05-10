@@ -1,0 +1,15 @@
+{
+  "best_validation_accuracy": 0.4648,
+  "test_loss": 1.5763068506240845,
+  "test_accuracy": 0.4641,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.9470635756386652,
+      "train_accuracy": 0.21968888888888888,
+      "val_loss": 1.5684192346572876,
+      "val_accuracy": 0.4648,
+      "learning_rate": 0.00014
+    }
+  ]
+}

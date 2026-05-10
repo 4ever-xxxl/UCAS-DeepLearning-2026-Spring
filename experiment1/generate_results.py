@@ -81,6 +81,18 @@ def plot_training_curves(metrics_path: Path, output_path: Path) -> None:
     ax2.set_xticks(epochs)
     ax2.set_ylim(82, 100.5)
 
+    # Annotate best validation accuracy point
+    best_epoch_idx = val_acc.index(max(val_acc))
+    ax2.annotate(
+        f"Best: {val_acc[best_epoch_idx]:.2f}%",
+        xy=(epochs[best_epoch_idx], val_acc[best_epoch_idx]),
+        xytext=(epochs[best_epoch_idx] + 0.4, val_acc[best_epoch_idx] - 0.6),
+        arrowprops={"arrowstyle": "->", "color": "#FF5722"},
+        fontsize=9,
+        color="#FF5722",
+        fontweight="bold",
+    )
+
     fig.suptitle(
         f"MNIST Training Curves | Best Val Acc: {data['best_validation_accuracy']:.4%} | Test Acc: {data['test_accuracy']:.4%}",
         fontsize=13,
@@ -112,11 +124,27 @@ def plot_confusion_matrix(model: MNISTCNN, loader: DataLoader, device: torch.dev
     for t, p in zip(all_targets, all_preds):
         cm[t, p] += 1
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    # Per-class metrics
+    per_class_acc = {}
+    for i in range(10):
+        tp = cm[i, i]
+        total = cm[i].sum()
+        per_class_acc[i] = tp / total if total > 0 else 0.0
+
+    # Build annotation with count + per-class acc on diagonal
+    annot = np.empty_like(cm, dtype=object)
+    for i in range(10):
+        for j in range(10):
+            cell = str(cm[i, j])
+            if i == j:
+                cell += f"\n({per_class_acc[i]:.1%})"
+            annot[i, j] = cell
+
+    fig, ax = plt.subplots(figsize=(11, 9))
     sns.heatmap(
         cm,
-        annot=True,
-        fmt="d",
+        annot=annot,
+        fmt="",
         cmap="Blues",
         xticklabels=CLASS_NAMES,
         yticklabels=CLASS_NAMES,
@@ -124,17 +152,23 @@ def plot_confusion_matrix(model: MNISTCNN, loader: DataLoader, device: torch.dev
         linewidths=0.5,
         linecolor="white",
         cbar_kws={"label": "Count"},
-        annot_kws={"fontsize": 11},
+        annot_kws={"fontsize": 10},
     )
-    ax.set_xlabel("Predicted Label")
-    ax.set_ylabel("True Label")
-    ax.set_title("Confusion Matrix — MNIST Test Set")
+    ax.set_xlabel("Predicted Label", fontsize=12)
+    ax.set_ylabel("True Label", fontsize=12)
+    ax.set_title("Confusion Matrix — MNIST Test Set\n(Diagonal shows per-class accuracy)", fontsize=13)
 
     accuracy = np.trace(cm) / np.sum(cm)
-    fig.suptitle(f"Overall Accuracy: {accuracy:.4%}", fontsize=12, y=0.98, fontweight="bold")
+    fig.suptitle(f"Overall Accuracy: {accuracy:.4%}", fontsize=13, y=0.98, fontweight="bold")
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
+
+    # Print per-class metrics
+    print(f"Overall accuracy: {accuracy:.4%}")
+    print("Per-class accuracy:")
+    for i in range(10):
+        print(f"  Digit {i}: {per_class_acc[i]:.4%} ({cm[i,i]}/{cm[i].sum()})")
     print(f"Saved: {output_path}")
 
 
