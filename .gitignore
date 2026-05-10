@@ -153,8 +153,10 @@ cython_debug/
 .DS_Store
 
 # Experiment artifacts
-experiment1/data/
-experiment1/outputs/
+experiment*/data/
+experiment*/outputs/
+*.zip
+*.pdf
 
 # Large model files
 *.pth
