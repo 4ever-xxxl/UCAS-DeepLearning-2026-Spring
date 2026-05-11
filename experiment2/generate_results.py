@@ -14,8 +14,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-
-from train_vit import CIFAR10ViT, CIFAR_MEAN, CIFAR_STD
+from train_vit import CIFAR_MEAN, CIFAR_STD, CIFAR10ViT
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "outputs"
 METRICS_PATH = OUTPUT_DIR / "metrics.json"
@@ -101,8 +100,7 @@ def plot_training_curves(metrics_path: Path, output_path: Path) -> None:
     ax2.legend()
 
     fig.suptitle(
-        f"CIFAR-10 ViT | Best Val Acc: {data['best_validation_accuracy']:.2%} | "
-        f"Test Acc: {data['test_accuracy']:.2%}",
+        f"CIFAR-10 ViT | Best Val Acc: {data['best_validation_accuracy']:.2%} | Test Acc: {data['test_accuracy']:.2%}",
         fontsize=13,
         fontweight="bold",
     )
@@ -209,7 +207,9 @@ def plot_predictions(
     print(f"Saved: {output_path}")
 
 
-def save_feature_map(module: nn.Module, inputs: tuple[torch.Tensor, ...], output: torch.Tensor, store: dict[str, torch.Tensor]) -> None:
+def save_feature_map(
+    module: nn.Module, inputs: tuple[torch.Tensor, ...], output: torch.Tensor, store: dict[str, torch.Tensor]
+) -> None:
     store["feature_map"] = output.detach().cpu()
 
 

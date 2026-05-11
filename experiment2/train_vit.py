@@ -309,19 +309,27 @@ class ExperimentConfig:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train a Vision Transformer on CIFAR-10.")
     parser.add_argument("--data-dir", type=Path, default=Path("experiment2/data"), help="CIFAR-10 cache directory.")
-    parser.add_argument("--output-dir", type=Path, default=Path("experiment2/outputs"), help="Checkpoint and metrics directory.")
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("experiment2/outputs"), help="Checkpoint and metrics directory."
+    )
     parser.add_argument("--batch-size", type=int, default=512, help="Mini-batch size.")
     parser.add_argument("--epochs", type=int, default=60, help="Maximum number of training epochs.")
     parser.add_argument("--learning-rate", type=float, default=8e-4, help="AdamW learning rate.")
     parser.add_argument("--weight-decay", type=float, default=5e-2, help="AdamW weight decay.")
-    parser.add_argument("--val-fraction", type=float, default=0.1, help="Validation split fraction from CIFAR-10 train.")
+    parser.add_argument(
+        "--val-fraction", type=float, default=0.1, help="Validation split fraction from CIFAR-10 train."
+    )
     parser.add_argument("--num-workers", type=int, default=8, help="DataLoader worker count.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto", help="Execution device.")
     parser.add_argument("--label-smoothing", type=float, default=0.05, help="Cross-entropy label smoothing.")
-    parser.add_argument("--mixup-alpha", type=float, default=0.2, help="MixUp beta distribution alpha; 0 disables MixUp.")
+    parser.add_argument(
+        "--mixup-alpha", type=float, default=0.2, help="MixUp beta distribution alpha; 0 disables MixUp."
+    )
     parser.add_argument("--random-erasing", type=float, default=0.15, help="RandomErasing probability.")
-    parser.add_argument("--target-accuracy", type=float, default=0.82, help="Stop once best validation accuracy reaches this value.")
+    parser.add_argument(
+        "--target-accuracy", type=float, default=0.82, help="Stop once best validation accuracy reaches this value."
+    )
     parser.add_argument("--min-epochs", type=int, default=20, help="Minimum epochs before target-accuracy early stop.")
     parser.add_argument("--disable-augment", action="store_true", help="Disable augmentation.")
     parser.add_argument("--disable-amp", action="store_true", help="Disable mixed precision.")
@@ -656,10 +664,7 @@ def main() -> None:
         )
 
         if epoch >= config.min_epochs and best_val_accuracy >= config.target_accuracy:
-            print(
-                f"Reached target validation accuracy {config.target_accuracy:.2%} "
-                f"at epoch {epoch}; stopping early."
-            )
+            print(f"Reached target validation accuracy {config.target_accuracy:.2%} at epoch {epoch}; stopping early.")
             break
 
     # Load best checkpoint and evaluate on test set

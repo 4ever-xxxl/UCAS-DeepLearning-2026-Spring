@@ -5,7 +5,6 @@ from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 
 matplotlib.use("Agg")
 
@@ -93,8 +92,16 @@ def plot_translation_samples(output_dir: Path, num_samples: int = 8) -> None:
         f"Target: BLEU-4 >= 14.0"
     )
 
-    ax.text(0.1, 0.5, text, transform=ax.transAxes, fontsize=13, fontfamily="monospace",
-            verticalalignment="center", bbox={"boxstyle": "round", "facecolor": "lightyellow", "alpha": 0.8})
+    ax.text(
+        0.1,
+        0.5,
+        text,
+        transform=ax.transAxes,
+        fontsize=13,
+        fontfamily="monospace",
+        verticalalignment="center",
+        bbox={"boxstyle": "round", "facecolor": "lightyellow", "alpha": 0.8},
+    )
 
     fig.savefig(output_dir / "results_summary.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -104,7 +111,7 @@ def print_sample_translations(output_dir: Path) -> None:
     """Print sample translations from the last evaluation."""
     metrics = load_metrics(output_dir)
     print(f"\n{'=' * 60}")
-    print(f"Experiment 4: Transformer NMT Results Summary")
+    print("Experiment 4: Transformer NMT Results Summary")
     print(f"{'=' * 60}")
     print(f"Best Validation BLEU-4: {metrics['best_val_bleu']:.2f}")
     print(f"Test Loss:              {metrics['test_loss']:.4f}")

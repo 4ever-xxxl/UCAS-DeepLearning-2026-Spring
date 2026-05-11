@@ -10,7 +10,7 @@ import torch
 
 matplotlib.use("Agg")
 
-from train_poetry import ExperimentConfig, PoetryModel, generate_poem, resolve_device
+from train_poetry import PoetryModel, generate_poem, resolve_device
 
 
 def plot_training_curves(history: list[dict], output_dir: Path) -> None:

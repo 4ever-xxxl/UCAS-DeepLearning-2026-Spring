@@ -7,10 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-
-from train_mnist import MNISTCNN, MNIST_MEAN, MNIST_STD
+from train_mnist import MNIST_MEAN, MNIST_STD, MNISTCNN
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "outputs"
 METRICS_PATH = OUTPUT_DIR / "metrics.json"
@@ -168,7 +167,7 @@ def plot_confusion_matrix(model: MNISTCNN, loader: DataLoader, device: torch.dev
     print(f"Overall accuracy: {accuracy:.4%}")
     print("Per-class accuracy:")
     for i in range(10):
-        print(f"  Digit {i}: {per_class_acc[i]:.4%} ({cm[i,i]}/{cm[i].sum()})")
+        print(f"  Digit {i}: {per_class_acc[i]:.4%} ({cm[i, i]}/{cm[i].sum()})")
     print(f"Saved: {output_path}")
 
 
@@ -255,11 +254,13 @@ def plot_feature_maps(
             ax.imshow(feature_map[ch].numpy(), cmap="viridis")
             ax.axis("off")
             if row_idx == 0:
-                ax.set_title(f"F{ch+1}", fontsize=7)
+                ax.set_title(f"F{ch + 1}", fontsize=7)
 
     hook.remove()
 
-    fig.suptitle("First Conv Layer Feature Maps (Conv1 → 32 channels, showing first 16)", fontsize=13, fontweight="bold")
+    fig.suptitle(
+        "First Conv Layer Feature Maps (Conv1 → 32 channels, showing first 16)", fontsize=13, fontweight="bold"
+    )
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)

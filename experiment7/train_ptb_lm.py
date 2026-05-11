@@ -17,7 +17,6 @@ from torch import nn
 from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
 
-
 PTB_FILENAMES = ("ptb.train.txt", "ptb.valid.txt", "ptb.test.txt")
 DEFAULT_DATA_URL = "http://www.fit.vutbr.cz/~imikolov/rnnlm/simple-examples.tgz"
 RAW_PTB_URLS = {
@@ -388,9 +387,7 @@ def download_file(url: str, output_path: Path) -> None:
 
     if expected_size is not None and bytes_read != int(expected_size):
         tmp_path.unlink(missing_ok=True)
-        raise RuntimeError(
-            f"Download incomplete: got {bytes_read} bytes out of {int(expected_size)} bytes."
-        )
+        raise RuntimeError(f"Download incomplete: got {bytes_read} bytes out of {int(expected_size)} bytes.")
     tmp_path.replace(output_path)
 
 
@@ -409,9 +406,7 @@ def download_raw_ptb_files(data_dir: Path) -> Path:
         download_file(RAW_PTB_URLS[filename], output_path)
         actual_md5 = md5sum(output_path)
         if actual_md5 != RAW_PTB_MD5[filename]:
-            raise RuntimeError(
-                f"MD5 mismatch for {filename}: expected {RAW_PTB_MD5[filename]}, got {actual_md5}."
-            )
+            raise RuntimeError(f"MD5 mismatch for {filename}: expected {RAW_PTB_MD5[filename]}, got {actual_md5}.")
     return data_dir
 
 
@@ -634,10 +629,7 @@ def save_checkpoint(
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "metrics": metrics,
-            "config": {
-                key: str(value) if isinstance(value, Path) else value
-                for key, value in asdict(config).items()
-            },
+            "config": {key: str(value) if isinstance(value, Path) else value for key, value in asdict(config).items()},
         },
         path,
     )
@@ -721,9 +713,7 @@ def main() -> None:
     )
 
     for epoch in range(1, config.epochs + 1):
-        learning_rate = config.learning_rate * (
-            config.lr_decay ** max(epoch - config.lr_decay_start_epoch, 0)
-        )
+        learning_rate = config.learning_rate * (config.lr_decay ** max(epoch - config.lr_decay_start_epoch, 0))
         set_optimizer_lr(optimizer, learning_rate)
 
         train_metrics = train_one_epoch(

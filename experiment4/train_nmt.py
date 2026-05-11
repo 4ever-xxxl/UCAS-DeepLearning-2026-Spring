@@ -18,7 +18,6 @@ from torch import nn
 from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
 
-
 # ---------------------------------------------------------------------------
 # Special tokens (IDs are aligned with SentencePiece configuration below).
 # ---------------------------------------------------------------------------
@@ -79,9 +78,7 @@ def prepare_data(data_dir: Path, dev_size: int = 1000, force: bool = False) -> N
         return
 
     if not NIUTRANS_ROOT.exists():
-        raise FileNotFoundError(
-            f"NiuTrans corpus not found at {NIUTRANS_ROOT}. Please download/extract it first."
-        )
+        raise FileNotFoundError(f"NiuTrans corpus not found at {NIUTRANS_ROOT}. Please download/extract it first.")
 
     tm_zh = NIUTRANS_ROOT / "TM-training-set" / "chinese.txt"
     tm_en = NIUTRANS_ROOT / "TM-training-set" / "english.txt"
@@ -120,9 +117,7 @@ def prepare_data(data_dir: Path, dev_size: int = 1000, force: bool = False) -> N
     # Test reference: parse zh/blank/en blocks.
     test_ref_pairs = _parse_paired_blocks(ref_path)
     if len(test_ref_pairs) < len(test_src):
-        raise ValueError(
-            f"Parsed {len(test_ref_pairs)} test refs but expected ≥ {len(test_src)}."
-        )
+        raise ValueError(f"Parsed {len(test_ref_pairs)} test refs but expected ≥ {len(test_src)}.")
     ref_by_src = {z: e for z, e in test_ref_pairs}
     test_refs: list[str] = []
     for src in test_src:
@@ -131,9 +126,10 @@ def prepare_data(data_dir: Path, dev_size: int = 1000, force: bool = False) -> N
             ref = ""  # leave empty rather than fail; sacrebleu handles it
         test_refs.append(ref)
 
-    with open(data_dir / "test.zh", "w", encoding="utf-8") as fz, open(
-        data_dir / "test.en", "w", encoding="utf-8"
-    ) as fe:
+    with (
+        open(data_dir / "test.zh", "w", encoding="utf-8") as fz,
+        open(data_dir / "test.en", "w", encoding="utf-8") as fe,
+    ):
         for src, ref in zip(test_src, test_refs):
             fz.write(src + "\n")
             fe.write(ref + "\n")
@@ -196,9 +192,7 @@ class SPMVocab:
         return self.sp.encode(text, out_type=int)
 
     def decode_ids(self, ids: list[int]) -> str:
-        cleaned = [
-            i for i in ids if i not in (PAD_IDX, BOS_IDX, EOS_IDX) and i < len(self)
-        ]
+        cleaned = [i for i in ids if i not in (PAD_IDX, BOS_IDX, EOS_IDX) and i < len(self)]
         return self.sp.decode(cleaned)
 
 
@@ -217,14 +211,10 @@ def ensure_spm_models(
 
     if force or not src_model.exists():
         print(f"Training Chinese SentencePiece BPE (vocab={src_vocab_size})...")
-        train_sentencepiece(
-            data_dir / "train.zh", src_prefix, src_vocab_size, character_coverage=0.9995
-        )
+        train_sentencepiece(data_dir / "train.zh", src_prefix, src_vocab_size, character_coverage=0.9995)
     if force or not tgt_model.exists():
         print(f"Training English SentencePiece BPE (vocab={tgt_vocab_size})...")
-        train_sentencepiece(
-            data_dir / "train.en", tgt_prefix, tgt_vocab_size, character_coverage=1.0
-        )
+        train_sentencepiece(data_dir / "train.en", tgt_prefix, tgt_vocab_size, character_coverage=1.0)
 
     return SPMVocab(src_model), SPMVocab(tgt_model)
 
@@ -348,7 +338,9 @@ class MultiHeadAttention(nn.Module):
         K = self.w_k(key).view(B, -1, self.n_heads, self.d_k).transpose(1, 2)
         V = self.w_v(value).view(B, -1, self.n_heads, self.d_k).transpose(1, 2)
         attn = F.scaled_dot_product_attention(
-            Q, K, V,
+            Q,
+            K,
+            V,
             attn_mask=attend_mask,
             dropout_p=self.dropout_p if self.training else 0.0,
         )
@@ -427,12 +419,12 @@ class TransformerNMT(nn.Module):
         self.src_embed = nn.Embedding(src_vocab_size, d_model, padding_idx=PAD_IDX)
         self.tgt_embed = nn.Embedding(tgt_vocab_size, d_model, padding_idx=PAD_IDX)
         self.pos_enc = PositionalEncoding(d_model, max_seq_len + 4, dropout)
-        self.encoder_layers = nn.ModuleList([
-            EncoderLayer(d_model, n_heads, d_ff, dropout) for _ in range(n_encoder_layers)
-        ])
-        self.decoder_layers = nn.ModuleList([
-            DecoderLayer(d_model, n_heads, d_ff, dropout) for _ in range(n_decoder_layers)
-        ])
+        self.encoder_layers = nn.ModuleList(
+            [EncoderLayer(d_model, n_heads, d_ff, dropout) for _ in range(n_encoder_layers)]
+        )
+        self.decoder_layers = nn.ModuleList(
+            [DecoderLayer(d_model, n_heads, d_ff, dropout) for _ in range(n_decoder_layers)]
+        )
         self.enc_norm = nn.LayerNorm(d_model)
         self.dec_norm = nn.LayerNorm(d_model)
         self.output_proj = nn.Linear(d_model, tgt_vocab_size, bias=False)
@@ -630,12 +622,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-steps", type=int, default=4000)
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--beam-size", type=int, default=5)
-    parser.add_argument("--eval-with-beam", action="store_true",
-                        help="Run beam-search BLEU each validation epoch (slower).")
-    parser.add_argument("--rebuild-data", action="store_true",
-                        help="Force re-prep of dataset and BPE models.")
-    parser.add_argument("--smoke-test", action="store_true",
-                        help="Quick 1-epoch run on a 1k subset for verification.")
+    parser.add_argument(
+        "--eval-with-beam", action="store_true", help="Run beam-search BLEU each validation epoch (slower)."
+    )
+    parser.add_argument("--rebuild-data", action="store_true", help="Force re-prep of dataset and BPE models.")
+    parser.add_argument("--smoke-test", action="store_true", help="Quick 1-epoch run on a 1k subset for verification.")
     return parser.parse_args()
 
 
@@ -668,16 +659,25 @@ def build_dataloaders(
     smoke: bool = False,
 ) -> dict[str, DataLoader]:
     train_ds = TranslationDataset(
-        config.data_dir / "train.zh", config.data_dir / "train.en",
-        src_vocab, tgt_vocab, config.max_seq_len,
+        config.data_dir / "train.zh",
+        config.data_dir / "train.en",
+        src_vocab,
+        tgt_vocab,
+        config.max_seq_len,
     )
     val_ds = TranslationDataset(
-        config.data_dir / "dev.zh", config.data_dir / "dev.en",
-        src_vocab, tgt_vocab, config.max_seq_len,
+        config.data_dir / "dev.zh",
+        config.data_dir / "dev.en",
+        src_vocab,
+        tgt_vocab,
+        config.max_seq_len,
     )
     test_ds = TranslationDataset(
-        config.data_dir / "test.zh", config.data_dir / "test.en",
-        src_vocab, tgt_vocab, config.max_seq_len,
+        config.data_dir / "test.zh",
+        config.data_dir / "test.en",
+        src_vocab,
+        tgt_vocab,
+        config.max_seq_len,
         keep_unaligned=True,
     )
     if smoke:
@@ -949,14 +949,25 @@ def main() -> None:
 
     for epoch in range(1, epochs + 1):
         train_metrics = train_one_epoch(
-            model=model, loader=dataloaders["train"], criterion=criterion,
-            optimizer=optimizer, scheduler=scheduler, scaler=scaler,
-            device=device, use_amp=use_amp, grad_clip=config.grad_clip,
+            model=model,
+            loader=dataloaders["train"],
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            scaler=scaler,
+            device=device,
+            use_amp=use_amp,
+            grad_clip=config.grad_clip,
         )
         val_metrics = evaluate(
-            model=model, loader=dataloaders["val"], criterion=criterion,
-            device=device, tgt_vocab=tgt_vocab, max_len=config.max_seq_len,
-            use_beam=config.eval_with_beam, beam_size=config.beam_size,
+            model=model,
+            loader=dataloaders["val"],
+            criterion=criterion,
+            device=device,
+            tgt_vocab=tgt_vocab,
+            max_len=config.max_seq_len,
+            use_beam=config.eval_with_beam,
+            beam_size=config.beam_size,
         )
 
         epoch_metrics = {
@@ -993,25 +1004,36 @@ def main() -> None:
 
     print("\nRunning test evaluation (greedy)...")
     test_greedy = evaluate(
-        model=model, loader=dataloaders["test"], criterion=criterion,
-        device=device, tgt_vocab=tgt_vocab, max_len=config.max_seq_len,
+        model=model,
+        loader=dataloaders["test"],
+        criterion=criterion,
+        device=device,
+        tgt_vocab=tgt_vocab,
+        max_len=config.max_seq_len,
         use_beam=False,
     )
 
     print(f"\nRunning test evaluation (beam={config.beam_size})...")
     test_beam = evaluate(
-        model=model, loader=dataloaders["test"], criterion=criterion,
-        device=device, tgt_vocab=tgt_vocab, max_len=config.max_seq_len,
-        use_beam=True, beam_size=config.beam_size,
+        model=model,
+        loader=dataloaders["test"],
+        criterion=criterion,
+        device=device,
+        tgt_vocab=tgt_vocab,
+        max_len=config.max_seq_len,
+        use_beam=True,
+        beam_size=config.beam_size,
     )
 
     # Persist a few predictions for the report / PPT.
     samples = []
     for i in range(min(20, len(test_beam["hypotheses"]))):
-        samples.append({
-            "hypothesis": test_beam["hypotheses"][i],
-            "reference": test_beam["references"][i],
-        })
+        samples.append(
+            {
+                "hypothesis": test_beam["hypotheses"][i],
+                "reference": test_beam["references"][i],
+            }
+        )
     (config.output_dir / "test_samples.json").write_text(
         json.dumps(samples, indent=2, ensure_ascii=False), encoding="utf-8"
     )

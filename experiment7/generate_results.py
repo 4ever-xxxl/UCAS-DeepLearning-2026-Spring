@@ -5,14 +5,12 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import torch
-
 from train_ptb_lm import (
     PTBLanguageModel,
     build_vocabulary,
     ensure_ptb_files,
     file_to_word_ids,
 )
-
 
 ROOT_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT_DIR / "outputs"
@@ -160,14 +158,11 @@ def build_next_word_examples(
         probs = torch.softmax(logits[-1], dim=-1)
         top_probs, top_ids = probs.topk(top_k)
         predictions = [
-            f"{id_to_word[token_id]} ({prob:.1%})"
-            for token_id, prob in zip(top_ids.tolist(), top_probs.tolist())
+            f"{id_to_word[token_id]} ({prob:.1%})" for token_id, prob in zip(top_ids.tolist(), top_probs.tolist())
         ]
         hit = "yes" if target_id in top_ids.tolist() else "no"
         context = " ".join(id_to_word[token_id] for token_id in context_ids)
-        rows.append(
-            f"| `{context}` | `{id_to_word[target_id]}` | {', '.join(predictions)} | {hit} |"
-        )
+        rows.append(f"| `{context}` | `{id_to_word[target_id]}` | {', '.join(predictions)} | {hit} |")
 
     output_path.write_text("\n".join(rows) + "\n", encoding="utf-8")
     print(f"Saved: {output_path}")

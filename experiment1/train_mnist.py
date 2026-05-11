@@ -13,7 +13,6 @@ from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 
-
 MNIST_MEAN = (0.1307,)
 MNIST_STD = (0.3081,)
 
@@ -126,9 +125,7 @@ def resolve_device(requested: str) -> torch.device:
 def build_transforms(augment: bool) -> tuple[transforms.Compose, transforms.Compose]:
     train_steps: list[Any] = []
     if augment:
-        train_steps.append(
-            transforms.RandomAffine(degrees=12, translate=(0.08, 0.08), scale=(0.95, 1.05))
-        )
+        train_steps.append(transforms.RandomAffine(degrees=12, translate=(0.08, 0.08), scale=(0.95, 1.05)))
     train_steps.extend([transforms.ToTensor(), transforms.Normalize(MNIST_MEAN, MNIST_STD)])
     eval_steps = [transforms.ToTensor(), transforms.Normalize(MNIST_MEAN, MNIST_STD)]
     return transforms.Compose(train_steps), transforms.Compose(eval_steps)

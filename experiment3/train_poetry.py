@@ -49,16 +49,18 @@ class PoetryModel(nn.Module):
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
 
-        self.features = nn.ModuleDict({
-            "embedding": nn.Embedding(vocab_size, embedding_dim),
-            "lstm": nn.LSTM(
-                embedding_dim,
-                hidden_dim,
-                num_layers=num_layers,
-                batch_first=True,
-                dropout=lstm_dropout if num_layers > 1 else 0.0,
-            ),
-        })
+        self.features = nn.ModuleDict(
+            {
+                "embedding": nn.Embedding(vocab_size, embedding_dim),
+                "lstm": nn.LSTM(
+                    embedding_dim,
+                    hidden_dim,
+                    num_layers=num_layers,
+                    batch_first=True,
+                    dropout=lstm_dropout if num_layers > 1 else 0.0,
+                ),
+            }
+        )
         self.classifier = nn.Sequential(
             nn.LayerNorm(hidden_dim),
             nn.Dropout(lstm_dropout),
@@ -74,11 +76,15 @@ class PoetryModel(nn.Module):
         embeds = self.features["embedding"](input)
         if hidden is None:
             h_0 = torch.zeros(
-                self.num_layers, batch_size, self.hidden_dim,
+                self.num_layers,
+                batch_size,
+                self.hidden_dim,
                 device=input.device,
             )
             c_0 = torch.zeros(
-                self.num_layers, batch_size, self.hidden_dim,
+                self.num_layers,
+                batch_size,
+                self.hidden_dim,
                 device=input.device,
             )
             hidden = (h_0, c_0)
@@ -308,10 +314,7 @@ def save_checkpoint(
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "metrics": metrics,
-            "config": {
-                key: str(value) if isinstance(value, Path) else value
-                for key, value in asdict(config).items()
-            },
+            "config": {key: str(value) if isinstance(value, Path) else value for key, value in asdict(config).items()},
         },
         path,
     )
@@ -355,15 +358,22 @@ def main() -> None:
 
     print("Loading data ...")
     train_dataset, val_dataset, test_dataset, ix2word, word2ix = load_data(
-        config.data_path, config.val_split, config.test_split, config.seed,
+        config.data_path,
+        config.val_split,
+        config.test_split,
+        config.seed,
     )
     vocab_size = len(word2ix)
     pad_idx = word2ix["</s>"]
     print(f"Vocabulary size: {vocab_size}, padding index: {pad_idx}")
 
     dataloaders = build_dataloaders(
-        train_dataset, val_dataset, test_dataset,
-        config.batch_size, config.num_workers, device,
+        train_dataset,
+        val_dataset,
+        test_dataset,
+        config.batch_size,
+        config.num_workers,
+        device,
     )
 
     model = PoetryModel(
@@ -383,10 +393,15 @@ def main() -> None:
 
     criterion = nn.CrossEntropyLoss(ignore_index=pad_idx)
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay,
+        model.parameters(),
+        lr=config.learning_rate,
+        weight_decay=config.weight_decay,
     )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=3,
+        optimizer,
+        mode="min",
+        factor=0.5,
+        patience=3,
     )
     scaler = GradScaler(device=device.type, enabled=use_amp)
 
@@ -417,13 +432,20 @@ def main() -> None:
 
     for epoch in range(1, config.epochs + 1):
         train_metrics = train_one_epoch(
-            model=model, loader=dataloaders["train"], criterion=criterion,
-            optimizer=optimizer, scaler=scaler, device=device,
-            use_amp=use_amp, grad_clip=config.grad_clip,
+            model=model,
+            loader=dataloaders["train"],
+            criterion=criterion,
+            optimizer=optimizer,
+            scaler=scaler,
+            device=device,
+            use_amp=use_amp,
+            grad_clip=config.grad_clip,
         )
         val_metrics = evaluate(
-            model=model, loader=dataloaders["val"],
-            criterion=criterion, device=device,
+            model=model,
+            loader=dataloaders["val"],
+            criterion=criterion,
+            device=device,
         )
         scheduler.step(val_metrics["loss"])
 
@@ -439,12 +461,20 @@ def main() -> None:
         if val_metrics["loss"] < best_val_loss:
             best_val_loss = val_metrics["loss"]
             save_checkpoint(
-                path=best_model_path, epoch=epoch, model=model,
-                optimizer=optimizer, metrics=val_metrics, config=config,
+                path=best_model_path,
+                epoch=epoch,
+                model=model,
+                optimizer=optimizer,
+                metrics=val_metrics,
+                config=config,
             )
 
         sample = generate_poem(
-            model, sample_start, ix2word, word2ix, device,
+            model,
+            sample_start,
+            ix2word,
+            word2ix,
+            device,
         )
         print(
             f"Epoch {epoch:02d}/{config.epochs} | "
@@ -456,7 +486,10 @@ def main() -> None:
     checkpoint = torch.load(best_model_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model_state_dict"])
     test_metrics = evaluate(
-        model=model, loader=dataloaders["test"], criterion=criterion, device=device,
+        model=model,
+        loader=dataloaders["test"],
+        criterion=criterion,
+        device=device,
     )
 
     metrics_payload = {

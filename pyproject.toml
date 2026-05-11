@@ -1,9 +1,19 @@
 [project]
 name = "dl"
 version = "0.1.0"
-description = "Add your description here"
+description = "Deep Learning course experiments (2026 Spring) — CNN, ViT, LSTM, Transformer"
 readme = "README.md"
 requires-python = ">=3.13"
+authors = [
+    { name = "lx10ng" },
+]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Education",
+]
 dependencies = [
     "matplotlib>=3.10.9",
     "nvitop>=1.6.2",
@@ -15,4 +25,10 @@ dependencies = [
     "sentencepiece>=0.2.1",
     "torch>=2.11.0",
     "torchvision>=0.26.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+    "ruff>=0.15.12",
 ]
