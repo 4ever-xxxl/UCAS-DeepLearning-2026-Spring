@@ -10,7 +10,9 @@ dependencies = [
     "openai>=2.32.0",
     "pymupdf>=1.27.2.2",
     "python-pptx>=1.0.2",
+    "sacrebleu>=2.6.0",
     "seaborn>=0.13.2",
+    "sentencepiece>=0.2.1",
     "torch>=2.11.0",
     "torchvision>=0.26.0",
 ]

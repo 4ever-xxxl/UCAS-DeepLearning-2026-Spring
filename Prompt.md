@@ -99,7 +99,7 @@ for epoch in range(1, config.epochs + 1):
 - DataLoader 启用 `pin_memory` 和 `persistent_workers`
 - 对 CUDA 操作使用 `non_blocking=True`
 - **硬件配置**：训练硬件为 **RTX 5070 (12GB, Blackwell) + Intel i5-14600KF (6P+8E, 20 线程)**：
-  - `batch_size` 默认值根据任务合理设置（CNN 图像分类 128~256，ViT 等大模型 64~128），充分利用显存但避免 OOM
+  - `batch_size` 默认值根据任务合理设置（CNN 图像分类 128\~256，ViT 等大模型 64\~128），充分利用显存但避免 OOM
   - 启用 `torch.compile()` 加速
   - 启用 tf32 精度（`torch.set_float32_matmul_precision('high')`），充分利用 Tensor Core
   - `num_workers` 默认 8~12，配合 `pin_memory=True` 利用 CPU 多核优势
